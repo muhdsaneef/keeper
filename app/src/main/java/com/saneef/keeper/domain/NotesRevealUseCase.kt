@@ -1,4 +1,4 @@
-package com.saneef.keeper
+package com.saneef.keeper.domain
 
 interface NotesRevealUseCase {
 

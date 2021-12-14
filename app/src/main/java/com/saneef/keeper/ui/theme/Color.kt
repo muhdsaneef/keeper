@@ -9,4 +9,5 @@ val Teal200 = Color(0xFF03DAC5)
 
 val Background = Color(0xFFF7F7F7)
 val Title = Color(0xFF000000)
-val Description = Color(0xFF242424)
+val Description = Color(0xFF2C2C2C)
+val StatusBar = Color(0xB3585858)
