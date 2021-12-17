@@ -28,4 +28,8 @@ class NotesRepository @Inject constructor(
         }
         notesDao.update(updatedNote)
     }
+
+    fun exportAllNotes(): Boolean {
+        return true
+    }
 }

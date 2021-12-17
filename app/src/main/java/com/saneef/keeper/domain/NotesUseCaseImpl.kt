@@ -17,11 +17,19 @@ class NotesUseCaseImpl(private val notesRepository: NotesRepository): NotesUseCa
     }
 
     override fun deleteNote() {
-
+        //  TODO: Implement delete note functionality
     }
 
     override fun deleteNotes() {
+        //  TODO: Implement all delete notes functionality
+    }
 
+    override suspend fun exportNotes(): Boolean = withContext(Dispatchers.IO) {
+        notesRepository.exportAllNotes()
+    }
+
+    override suspend fun importNotes(filename: String): Boolean {
+        TODO("Not yet implemented")
     }
 
     override suspend fun updateNote(noteUiModel: NoteUiModel) = withContext(Dispatchers.IO) {

@@ -10,4 +10,6 @@ interface NotesUseCase {
     fun deleteNote()
     fun deleteNotes()
     suspend fun updateNote(noteUiModel: NoteUiModel)
+    suspend fun exportNotes(): Boolean
+    suspend fun importNotes(filename: String): Boolean
 }
