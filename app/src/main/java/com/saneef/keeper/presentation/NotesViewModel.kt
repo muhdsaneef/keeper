@@ -142,7 +142,11 @@ class NotesViewModel @Inject constructor(
 
     fun onEditClicked(noteUiModel: NoteUiModel) {
         viewModelScope.launch {
-            noteEditRequiredSignalChannel.send(noteUiModel)
+            if (isBiometricVerified) {
+                noteEditRequiredSignalChannel.send(noteUiModel)
+            } else {
+                initiateBiometric()
+            }
         }
     }
 

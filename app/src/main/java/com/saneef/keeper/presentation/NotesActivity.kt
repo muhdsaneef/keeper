@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -22,11 +24,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import com.saneef.keeper.model.NoteUiModel
 import com.saneef.keeper.presentation.MainActivity.Companion.EXTRA_NOTE
@@ -88,7 +94,13 @@ fun NotesBuilderHome(viewModel: NotesViewModel, noteUiModel:NoteUiModel? = null)
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
                 onClick = { viewModel.addNote(titleMutableState.value, descriptionMutableState.value) }
             ) {
-                Text(modifier = Modifier.padding(vertical = 8.dp), text = "Save", color = Color.White)
+                Text(
+                    modifier = Modifier.padding(vertical = 8.dp).height(48.dp).align(Alignment.CenterVertically),
+                    text = "Save",
+                    color = Color.White,
+                    fontFamily = FontFamily.Monospace,
+                    style = MaterialTheme.typography.h6
+                )
             }
         }
     )
@@ -103,9 +115,10 @@ fun NotesBuilderContent(title: MutableState<String>, description: MutableState<S
                 .fillMaxWidth(),
             value = title.value,
             onValueChange = { title.value = it },
-            label = { Text("Title") },
+            label = { Text("Title", fontFamily = FontFamily.Monospace) },
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 20.sp)
         )
 
         val localFocusManager = LocalFocusManager.current
@@ -117,13 +130,14 @@ fun NotesBuilderContent(title: MutableState<String>, description: MutableState<S
                 .fillMaxHeight(0.7f),
             value = description.value,
             onValueChange = { description.value = it },
-            label = { Text(text = "Description") },
+            label = { Text(text = "Description", fontFamily = FontFamily.Monospace) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = {
                     localFocusManager.clearFocus(force = true)
                 }
-            )
+            ),
+            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 16.sp)
         )
     }
 }

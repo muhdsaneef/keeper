@@ -44,6 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -177,7 +179,7 @@ fun AddNoteFloatingActionButton(viewModel: NotesViewModel) {
         onClick = { viewModel.onCreateNotesClicked() },
         backgroundColor = Background
     ) {
-        Icon(imageVector = Icons.Outlined.Add, contentDescription = null, tint = Color.Unspecified)
+        Icon(imageVector = Icons.Outlined.Add, contentDescription = null, tint = Color.White)
     }
 }
 
@@ -228,13 +230,15 @@ fun Note(title: String, description: String, onClicked: () -> Unit) {
             Text(
                 text = title,
                 color = Title,
-                style = MaterialTheme.typography.body1
+                style = MaterialTheme.typography.h6,
+                fontFamily = FontFamily.Monospace
             )
             Spacer(modifier = Modifier.padding(vertical = 8.dp))
             Text(
                 text = description,
                 color = Description,
-                style = MaterialTheme.typography.body2
+                style = MaterialTheme.typography.body1,
+                fontFamily = FontFamily.Monospace
             )
         }
     }
@@ -260,7 +264,7 @@ fun TopBar(viewModel: NotesViewModel) {
                         },
                         imageVector = Icons.Outlined.Search,
                         contentDescription = null,
-                        tint = Color.Unspecified
+                        tint = Color.White
                     )
                 },
                 colors = TextFieldDefaults.textFieldColors(
@@ -270,8 +274,12 @@ fun TopBar(viewModel: NotesViewModel) {
                     textColor = Title,
                     cursorColor = Title
                 ),
+                textStyle = TextStyle(
+                    color = Color.White,
+                    fontFamily = FontFamily.Monospace
+                ),
                 placeholder = {
-                    Text(text = "Search", color = Color.Black)
+                    Text(text = "Search", color = Color.White, fontFamily = FontFamily.Monospace)
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
@@ -286,7 +294,7 @@ fun TopBar(viewModel: NotesViewModel) {
                 } else {
                     Icons.Outlined.VisibilityOff
                 },
-                tint = Color.Unspecified,
+                tint = Color.White,
                 contentDescription = null,
                 modifier = Modifier
                     .padding(all = 16.dp)
