@@ -2,10 +2,11 @@ package com.saneef.keeper.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.saneef.keeper.di.DefaultDispatcher
 import com.saneef.keeper.domain.NotesUseCase
 import com.saneef.keeper.model.NoteUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     private val notesUseCase: NotesUseCase,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val notesState: MutableStateFlow<List<NoteUiModel>> = MutableStateFlow(emptyList())
@@ -31,10 +33,10 @@ class NotesViewModel @Inject constructor(
     val buildSignalViewState: Flow<Unit>
         get() = buildSignalChannel.receiveAsFlow()
 
-    private val noteAddedSignalChannel: Channel<Boolean> =
+    private val noteBuilderUpdateSignalChannel: Channel<Boolean> =
         Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val noteAddedSignalViewState: Flow<Boolean>
-        get() = noteAddedSignalChannel.receiveAsFlow()
+    val noteBuilderUpdateSignalViewState: Flow<Boolean>
+        get() = noteBuilderUpdateSignalChannel.receiveAsFlow()
 
     private val noteEditRequiredSignalChannel: Channel<NoteUiModel> =
         Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -81,9 +83,9 @@ class NotesViewModel @Inject constructor(
                     )
                 }
                 isEditMode = false
-                noteAddedSignalChannel.send(true)
+                noteBuilderUpdateSignalChannel.send(true)
             }.onFailure {
-                noteAddedSignalChannel.send(false)
+                noteBuilderUpdateSignalChannel.send(false)
             }
         }
     }
@@ -93,7 +95,7 @@ class NotesViewModel @Inject constructor(
             fetchAllNotes()
         } else {
             viewModelScope.launch {
-                withContext(Dispatchers.Default) {
+                withContext(defaultDispatcher) {
                     notesUseCase.fetchNotes().collect {
                         val searchResults = it.filter { note ->
                             note.title.contains(query, ignoreCase = true) ||
@@ -104,6 +106,13 @@ class NotesViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun deleteNote() {
+        viewModelScope.launch {
+            notesUseCase.deleteNote(noteId)
+            noteBuilderUpdateSignalChannel.send(true)
         }
     }
 

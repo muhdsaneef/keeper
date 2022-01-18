@@ -6,15 +6,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
@@ -66,7 +69,7 @@ class NotesActivity : ComponentActivity() {
 
     private fun observeViewModelChanges() {
         lifecycleScope.launchWhenStarted {
-            viewModel.noteAddedSignalViewState.collect { done ->
+            viewModel.noteBuilderUpdateSignalViewState.collect { done ->
                 if (done) {
                     finish()
                 } else {
@@ -81,26 +84,63 @@ class NotesActivity : ComponentActivity() {
 fun NotesBuilderHome(viewModel: NotesViewModel, noteUiModel:NoteUiModel? = null) {
     val titleMutableState = remember { mutableStateOf(noteUiModel?.title ?: "") }
     val descriptionMutableState = remember { mutableStateOf(noteUiModel?.description ?: "") }
+    val isEditMode = remember {
+        mutableStateOf(noteUiModel != null)
+    }
 
     Scaffold(
         content = {
             NotesBuilderContent(titleMutableState, descriptionMutableState)
         },
         bottomBar = {
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = Shapes.large,
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
-                onClick = { viewModel.addNote(titleMutableState.value, descriptionMutableState.value) }
-            ) {
-                Text(
-                    modifier = Modifier.padding(vertical = 8.dp).height(48.dp).align(Alignment.CenterVertically),
-                    text = "Save",
-                    color = Color.White,
-                    fontFamily = FontFamily.Monospace,
-                    style = MaterialTheme.typography.h6
-                )
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)) {
+                if (isEditMode.value) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        shape = Shapes.large,
+                        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
+                        onClick = { viewModel.deleteNote() }
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .height(48.dp)
+                                .align(Alignment.CenterVertically),
+                            text = "Delete",
+                            color = Color.White,
+                            fontFamily = FontFamily.Monospace,
+                            style = MaterialTheme.typography.h6
+                        )
+                    }
+
+                    Divider(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .width(1.dp)
+                            .padding(top = 6.dp, bottom = 6.dp),
+                        color = Color.White.copy(alpha = 0.6f)
+                    )
+                }
+                Button(
+                    modifier = Modifier
+                        .weight(1f),
+                    shape = Shapes.large,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
+                    onClick = { viewModel.addNote(titleMutableState.value, descriptionMutableState.value) }
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .height(48.dp)
+                            .align(Alignment.CenterVertically),
+                        text = "Save",
+                        color = Color.White,
+                        fontFamily = FontFamily.Monospace,
+                        style = MaterialTheme.typography.h6
+                    )
+                }
             }
         }
     )

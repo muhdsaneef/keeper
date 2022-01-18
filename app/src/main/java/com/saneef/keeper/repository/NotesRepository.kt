@@ -1,5 +1,6 @@
 package com.saneef.keeper.repository
 
+import android.util.Log
 import com.saneef.keeper.TimestampHelper
 import com.saneef.keeper.dao.NotesDao
 import com.saneef.keeper.domain.NotesDbMapper
@@ -27,6 +28,11 @@ class NotesRepository @Inject constructor(
             DbNote(id, title, timestampHelper.currentTimestamp, description)
         }
         notesDao.update(updatedNote)
+    }
+
+    fun delete(id: Long) {
+        Log.d("ID", "$id")
+        notesDao.delete(id)
     }
 
     fun exportAllNotes(): Boolean {

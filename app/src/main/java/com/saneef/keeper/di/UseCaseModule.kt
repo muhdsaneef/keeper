@@ -7,13 +7,17 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
+import kotlinx.coroutines.CoroutineDispatcher
 
 @InstallIn(ViewModelComponent::class)
 @Module
 object UseCaseModule {
 
     @Provides
-    fun provideNotesUseCase(notesRepository: NotesRepository): NotesUseCase {
-        return NotesUseCaseImpl(notesRepository)
+    fun provideNotesUseCase(
+        notesRepository: NotesRepository,
+        @IODispatcher dispatcher: CoroutineDispatcher
+    ): NotesUseCase {
+        return NotesUseCaseImpl(notesRepository, dispatcher)
     }
 }
