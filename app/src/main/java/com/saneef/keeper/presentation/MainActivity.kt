@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -216,15 +217,14 @@ fun Notes(viewModel: NotesViewModel) {
 fun Note(title: String, description: String, onClicked: () -> Unit, onLongPressed: () -> Unit) {
 
     Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = Background,
+        color = Color.Transparent,
         elevation = 2.dp,
         modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(
                 onTap = { onClicked() },
                 onLongPress = { onLongPressed() }
             )
-        }
+        }.border(width = 2.dp, color = Background, shape = MaterialTheme.shapes.medium)
     ) {
         Column(
             modifier = Modifier

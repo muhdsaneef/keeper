@@ -23,6 +23,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
 import com.saneef.keeper.model.NoteUiModel
 import com.saneef.keeper.presentation.MainActivity.Companion.EXTRA_NOTE
+import com.saneef.keeper.ui.theme.Background
 import com.saneef.keeper.ui.theme.KeeperTheme
 import com.saneef.keeper.ui.theme.Shapes
 import dagger.hilt.android.AndroidEntryPoint
@@ -160,7 +162,14 @@ fun NotesBuilderContent(title: MutableState<String>, description: MutableState<S
             label = { Text("Title", fontFamily = FontFamily.Monospace) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 20.sp)
+            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 20.sp),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = Background,
+                focusedBorderColor = Background,
+                focusedLabelColor = Color.White,
+                cursorColor = Color.White,
+                unfocusedLabelColor = Background
+            ),
         )
 
         val localFocusManager = LocalFocusManager.current
@@ -179,7 +188,14 @@ fun NotesBuilderContent(title: MutableState<String>, description: MutableState<S
                     localFocusManager.clearFocus(force = true)
                 }
             ),
-            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 16.sp)
+            textStyle = TextStyle(color = Color.White, fontFamily = FontFamily.Monospace, fontSize = 16.sp),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                unfocusedBorderColor = Background,
+                focusedBorderColor = Background,
+                focusedLabelColor = Color.White,
+                cursorColor = Color.White,
+                unfocusedLabelColor = Background
+            ),
         )
     }
 }
