@@ -69,11 +69,13 @@ class NotesActivity : ComponentActivity() {
 
     private fun observeViewModelChanges() {
         lifecycleScope.launchWhenStarted {
-            viewModel.noteBuilderUpdateSignalViewState.collect { done ->
-                if (done) {
-                    finish()
-                } else {
-                    Log.d(NotesActivity::class.java.simpleName, "Error while adding note")
+            viewModel.noteEventsViewState.collect { event ->
+                if (event is NoteEvents.BuilderUpdated) {
+                    if (event.done) {
+                        finish()
+                    } else {
+                        Log.d(NotesActivity::class.java.simpleName, "Error while adding note")
+                    }
                 }
             }
         }
@@ -101,7 +103,7 @@ fun NotesBuilderHome(viewModel: NotesViewModel, noteUiModel:NoteUiModel? = null)
                         modifier = Modifier.weight(1f),
                         shape = Shapes.large,
                         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
-                        onClick = { viewModel.deleteNote() }
+                        onClick = { viewModel.deleteNote(noteUiModel?.id) }
                     ) {
                         Text(
                             modifier = Modifier

@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface NotesUseCase {
 
-    suspend fun fetchNotes(): Flow<List<NoteUiModel>>
+    fun allNotes(): Flow<List<NoteUiModel>>
     suspend fun insertNote(noteUiModel: NoteUiModel)
     suspend fun deleteNote(id: Long)
     suspend fun deleteNotes()

@@ -1,5 +1,6 @@
 package com.saneef.keeper.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saneef.keeper.di.DefaultDispatcher
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,27 +28,19 @@ class NotesViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val notesState: MutableStateFlow<List<NoteUiModel>> = MutableStateFlow(emptyList())
-    val notes: StateFlow<List<NoteUiModel>>
-        get() = notesState.asStateFlow()
 
-    private val buildSignalChannel: Channel<Unit> = Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val buildSignalViewState: Flow<Unit>
-        get() = buildSignalChannel.receiveAsFlow()
+    private val searchResultsState: MutableStateFlow<List<NoteUiModel>> = MutableStateFlow(emptyList())
 
-    private val noteBuilderUpdateSignalChannel: Channel<Boolean> =
+    val notes: Flow<List<NoteUiModel>> = combine(notesState, searchResultsState) { notes, searchResults ->
+        searchResults.ifEmpty {
+            notes
+        }
+    }
+
+    private val noteEventsChannel: Channel<NoteEvents> =
         Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val noteBuilderUpdateSignalViewState: Flow<Boolean>
-        get() = noteBuilderUpdateSignalChannel.receiveAsFlow()
-
-    private val noteEditRequiredSignalChannel: Channel<NoteUiModel> =
-        Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val noteEditRequiredSignalViewState: Flow<NoteUiModel>
-        get() = noteEditRequiredSignalChannel.receiveAsFlow()
-
-    private val biometricRequiredSignalChannel: Channel<Unit> =
-        Channel(capacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    val biometricRequiredSignalViewState: Flow<Unit>
-        get() = biometricRequiredSignalChannel.receiveAsFlow()
+    val noteEventsViewState: Flow<NoteEvents>
+        get() = noteEventsChannel.receiveAsFlow()
 
     private val notesVisibilityState = MutableStateFlow(false)
     val notesVisibilityViewState: StateFlow<Boolean>
@@ -57,8 +51,16 @@ class NotesViewModel @Inject constructor(
     private var isEditMode: Boolean = false
     private var noteId: Long = 0L
 
-    fun onNotesHomeCreated() {
+    init {
         fetchAllNotes()
+    }
+
+    private fun fetchAllNotes() {
+        viewModelScope.launch {
+            notesUseCase.allNotes().collect {
+                notesState.value = it
+            }
+        }
     }
 
     fun addNote(title: String, description: String) {
@@ -83,36 +85,42 @@ class NotesViewModel @Inject constructor(
                     )
                 }
                 isEditMode = false
-                noteBuilderUpdateSignalChannel.send(true)
+                noteEventsChannel.send(NoteEvents.BuilderUpdated(true))
             }.onFailure {
-                noteBuilderUpdateSignalChannel.send(false)
+                noteEventsChannel.send(NoteEvents.BuilderUpdated(false))
             }
         }
     }
 
     fun searchNote(query: String) {
         if (query.isEmpty()) {
-            fetchAllNotes()
+            searchResultsState.value = emptyList()
         } else {
             viewModelScope.launch {
                 withContext(defaultDispatcher) {
-                    notesUseCase.fetchNotes().collect {
+                    notesState.value.let {
                         val searchResults = it.filter { note ->
                             note.title.contains(query, ignoreCase = true) ||
                                 note.description.contains(query, ignoreCase = true)
                         }
 
-                        notesState.value = searchResults
+                        searchResultsState.value = searchResults
                     }
                 }
             }
         }
     }
 
-    fun deleteNote() {
+    fun deleteNote(noteId: Long?) {
         viewModelScope.launch {
-            notesUseCase.deleteNote(noteId)
-            noteBuilderUpdateSignalChannel.send(true)
+            if (noteId != null && notesState.value.any { it.id == noteId }) {
+                notesUseCase.deleteNote(noteId)
+                searchResultsState.value = emptyList()
+            } else {
+                Log.d("Failed to delete ID", "$noteId")
+            }
+
+            noteEventsChannel.send(NoteEvents.BuilderUpdated(true))
         }
     }
 
@@ -126,13 +134,13 @@ class NotesViewModel @Inject constructor(
 
     private fun initiateBiometric() {
         viewModelScope.launch {
-            biometricRequiredSignalChannel.send(Unit)
+            noteEventsChannel.send(NoteEvents.BioMetricRequired)
         }
     }
 
     fun onCreateNotesClicked() {
         viewModelScope.launch {
-            buildSignalChannel.send(Unit)
+            noteEventsChannel.send(NoteEvents.StartBuilder)
         }
     }
 
@@ -141,18 +149,10 @@ class NotesViewModel @Inject constructor(
         notesVisibilityState.value = true
     }
 
-    private fun fetchAllNotes() {
-        viewModelScope.launch {
-            notesUseCase.fetchNotes().collect {
-                notesState.value = it
-            }
-        }
-    }
-
     fun onEditClicked(noteUiModel: NoteUiModel) {
         viewModelScope.launch {
             if (isBiometricVerified) {
-                noteEditRequiredSignalChannel.send(noteUiModel)
+                noteEventsChannel.send(NoteEvents.EditRequired(noteUiModel))
             } else {
                 initiateBiometric()
             }
@@ -165,4 +165,12 @@ class NotesViewModel @Inject constructor(
             noteId = noteUiModel.id
         }
     }
+}
+
+sealed class NoteEvents {
+    object NoSearchResults: NoteEvents()
+    data class BuilderUpdated(val done: Boolean): NoteEvents()
+    object StartBuilder: NoteEvents()
+    data class EditRequired(val noteUiModel: NoteUiModel): NoteEvents()
+    object BioMetricRequired: NoteEvents()
 }

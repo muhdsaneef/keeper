@@ -11,9 +11,7 @@ class NotesUseCaseImpl(
     private val ioDispatcher: CoroutineDispatcher
 ) : NotesUseCase {
 
-    override suspend fun fetchNotes(): Flow<List<NoteUiModel>> = withContext(ioDispatcher) {
-        notesRepository.notesFlow
-    }
+    override fun allNotes(): Flow<List<NoteUiModel>> = notesRepository.notesFlow
 
     override suspend fun insertNote(noteUiModel: NoteUiModel) = withContext(ioDispatcher) {
         notesRepository.insert(noteUiModel)
