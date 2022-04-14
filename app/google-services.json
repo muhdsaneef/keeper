@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "701253731097",
+    "project_id": "keeper-7b24a",
+    "storage_bucket": "keeper-7b24a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:701253731097:android:536bdc899d643596d73b88",
+        "android_client_info": {
+          "package_name": "com.saneef.keeper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "701253731097-cglv1vtmd782g7i6jam2rderbavesvbe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.saneef.keeper",
+            "certificate_hash": "7d0f9c478fb611450925c238f0a5648cdcaf0554"
+          }
+        },
+        {
+          "client_id": "701253731097-76989152n79l5ic46t9gdgtr1445ncla.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACMiQvckZcY5VIo-q042EOcxRz5b-e1eI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "701253731097-76989152n79l5ic46t9gdgtr1445ncla.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
