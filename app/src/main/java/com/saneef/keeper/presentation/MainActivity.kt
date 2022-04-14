@@ -25,12 +25,6 @@ class MainActivity : FragmentActivity() {
     private val viewModel: NotesViewModel by viewModels()
 
     private lateinit var executor: Executor
-    private lateinit var biometricPrompt: BiometricPrompt
-    private val promptInfo: BiometricPrompt.PromptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Biometric for notes reveal")
-        .setSubtitle("Please use your biometric to reveal the notes.")
-        .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,36 +41,6 @@ class MainActivity : FragmentActivity() {
 
     private fun initBiometricAuthenticator() {
         executor = ContextCompat.getMainExecutor(this)
-        biometricPrompt = BiometricPrompt(this, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationError(
-                    errorCode: Int,
-                    errString: CharSequence
-                ) {
-                    super.onAuthenticationError(errorCode, errString)
-                    Toast.makeText(
-                        applicationContext,
-                        "Authentication error: $errString", Toast.LENGTH_SHORT
-                    )
-                        .show()
-                }
-
-                override fun onAuthenticationSucceeded(
-                    result: BiometricPrompt.AuthenticationResult
-                ) {
-                    super.onAuthenticationSucceeded(result)
-                    viewModel.onBiometricAuthenticationSucceeded()
-                }
-
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    Toast.makeText(
-                        applicationContext, "Authentication failed",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
-                }
-            })
     }
 
     private fun observeViewModelChanges() {
@@ -98,7 +62,6 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun showBiometricDialog() {
-        biometricPrompt.authenticate(promptInfo)
     }
 
     private fun openNotesBuilder(noteUiModel: NoteUiModel? = null) {

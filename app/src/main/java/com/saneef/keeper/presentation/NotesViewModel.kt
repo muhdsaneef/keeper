@@ -47,7 +47,7 @@ class NotesViewModel @Inject constructor(
     val notesVisibilityViewState: StateFlow<Boolean>
         get() = notesVisibilityState.asStateFlow()
 
-    private var isBiometricVerified: Boolean = false
+    private var isBiometricVerified: Boolean = true
 
     private var isEditMode: Boolean = false
     private var noteId: Long = 0L
