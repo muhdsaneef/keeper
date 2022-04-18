@@ -2,8 +2,7 @@ package com.saneef.keeper.presentation
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -169,13 +168,13 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
                     }
                     .clickable { onClicked() }
                     .pointerInput(Unit) {
-                        detectDragGestures { _, dragAmount ->
+                        detectHorizontalDragGestures { _, dragAmount ->
 
-                            if (dragAmount.x > SWIPE_THRESHOLD) {
+                            if (dragAmount > SWIPE_THRESHOLD) {
                                 disableScramble = true
                             }
 
-                            if (dragAmount.x < -SWIPE_THRESHOLD) {
+                            if (dragAmount < -SWIPE_THRESHOLD) {
                                 disableScramble = false
                             }
                         }
