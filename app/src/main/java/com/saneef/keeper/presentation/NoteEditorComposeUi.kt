@@ -1,5 +1,6 @@
 package com.saneef.keeper.presentation
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,9 +49,12 @@ fun NotesBuilderHome(viewModel: NotesViewModel, noteUiModel: NoteUiModel? = null
             NotesBuilderContent(titleMutableState, descriptionMutableState)
         },
         bottomBar = {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .border(1.dp, shape = MaterialTheme.shapes.medium, color = Background)
+            ) {
                 if (isEditMode.value) {
                     Button(
                         modifier = Modifier.weight(1f),
@@ -75,7 +79,7 @@ fun NotesBuilderHome(viewModel: NotesViewModel, noteUiModel: NoteUiModel? = null
                             .fillMaxHeight()
                             .width(1.dp)
                             .padding(top = 6.dp, bottom = 6.dp),
-                        color = Color.White.copy(alpha = 0.6f)
+                        color = Background
                     )
                 }
                 Button(

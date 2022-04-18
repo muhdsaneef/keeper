@@ -2,6 +2,7 @@ package com.saneef.keeper.presentation
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,12 +12,16 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Divider
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -26,14 +31,17 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +51,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.saneef.keeper.ui.theme.Background
 import com.saneef.keeper.ui.theme.Description
 import com.saneef.keeper.ui.theme.Title
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.random.Random
+
+private const val SCRAMBLED_TEXT_SEED = "Private content"
+private const val SCRAMBLE_DELAY = 300L
+private const val SCRAMBLER_COUNT = 2
+private const val SWIPE_THRESHOLD = 20
 
 @Composable
 fun NotesHome(viewModel: NotesViewModel) {
@@ -92,9 +113,9 @@ fun Notes(viewModel: NotesViewModel) {
             items(items = notes, key = { it.id }) { note ->
                 Note(
                     title = note.title,
-                    description = if (notesVisibility) note.description else "****",
+                    description = if (notesVisibility) note.description else SCRAMBLED_TEXT_SEED,
                     onClicked = { viewModel.onEditClicked(note) },
-                    onLongPressed = { viewModel.deleteNote(note.id) }
+                    onDeleteClicked = { viewModel.deleteNote(note.id) }
                 )
             }
         }
@@ -102,39 +123,110 @@ fun Notes(viewModel: NotesViewModel) {
 }
 
 @Composable
-fun Note(title: String, description: String, onClicked: () -> Unit, onLongPressed: () -> Unit) {
+fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClicked: () -> Unit) {
+
+    val coroutineScope = rememberCoroutineScope()
+    var disableScramble by remember { mutableStateOf(false) }
+    var scrambleText by remember { mutableStateOf(SCRAMBLED_TEXT_SEED) }
+
+    LaunchedEffect(key1 = Unit) {
+        repeat(SCRAMBLER_COUNT) {
+            coroutineScope.launch {
+                withContext(Dispatchers.Default) {
+                    while (true) {
+                        delay(SCRAMBLE_DELAY)
+                        val indexToChange = Random.nextInt(0, scrambleText.length)
+                        val oldChar = scrambleText[indexToChange]
+                        val offset = Random.nextInt(-100, 100)
+                        val newChar = oldChar + offset
+                        if (newChar.isLetterOrDigit()) {
+                            val newString = scrambleText.replaceFirst(oldChar, oldChar + offset, ignoreCase = true)
+                            scrambleText = newString
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Surface(
         color = Color.Transparent,
         elevation = 2.dp,
-        modifier = Modifier.pointerInput(Unit) {
-            detectTapGestures(
-                onTap = { onClicked() },
-                onLongPress = { onLongPressed() }
+        modifier = Modifier.border(width = 2.dp, color = Background, shape = MaterialTheme.shapes.medium)) {
+        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+            val (noteContent, contentDivider, visibilityIcon) = createRefs()
+            Column(
+                modifier = Modifier
+                    .wrapContentSize(align = Alignment.CenterStart)
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .fillMaxWidth()
+                    .constrainAs(noteContent) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(contentDivider.start)
+                        width = Dimension.fillToConstraints
+                    }
+                    .clickable { onClicked() }
+                    .pointerInput(Unit) {
+                        detectDragGestures { _, dragAmount ->
+
+                            if (dragAmount.x > SWIPE_THRESHOLD) {
+                                disableScramble = true
+                            }
+
+                            if (dragAmount.x < -SWIPE_THRESHOLD) {
+                                disableScramble = false
+                            }
+                        }
+                    }
+
+            ) {
+                Text(
+                    text = title,
+                    color = Title,
+                    style = MaterialTheme.typography.h6,
+                    fontFamily = FontFamily.Monospace,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.padding(vertical = 8.dp))
+                Text(
+                    text = if (disableScramble) description else scrambleText,
+                    color = Description,
+                    style = MaterialTheme.typography.body1,
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+            Divider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .padding(vertical = 8.dp)
+                    .constrainAs(contentDivider) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(visibilityIcon.start)
+                        height = Dimension.fillToConstraints
+                    },
+                color = Background
             )
-        }.border(width = 2.dp, color = Background, shape = MaterialTheme.shapes.medium)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = title,
-                color = Title,
-                style = MaterialTheme.typography.h6,
-                fontFamily = FontFamily.Monospace
-            )
-            Spacer(modifier = Modifier.padding(vertical = 8.dp))
-            Text(
-                text = description,
-                color = Description,
-                style = MaterialTheme.typography.body1,
-                fontFamily = FontFamily.Monospace
-            )
+            IconButton(
+                modifier = Modifier
+                    .padding(horizontal = 6.dp)
+                    .constrainAs(visibilityIcon) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        end.linkTo(parent.end)
+                    }, onClick = { onDeleteClicked() }) {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteOutline,
+                    tint = Color.White,
+                    contentDescription = null,
+                )
+            }
         }
     }
-
 }
 
 @Composable
