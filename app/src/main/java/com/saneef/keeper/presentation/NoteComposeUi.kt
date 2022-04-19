@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,17 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.DeleteOutline
@@ -56,6 +47,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.saneef.keeper.ui.theme.Background
 import com.saneef.keeper.ui.theme.Description
+import com.saneef.keeper.ui.theme.Shapes
 import com.saneef.keeper.ui.theme.Title
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -127,6 +119,7 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
     val coroutineScope = rememberCoroutineScope()
     var disableScramble by remember { mutableStateOf(false) }
     var scrambleText by remember { mutableStateOf(SCRAMBLED_TEXT_SEED) }
+    var confirmationDialogShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
         repeat(SCRAMBLER_COUNT) {
@@ -146,6 +139,14 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
                 }
             }
         }
+    }
+
+    if (confirmationDialogShown) {
+        ConfirmationDialog(
+            onConfirmClicked = { onDeleteClicked() },
+            onCancelClicked = { confirmationDialogShown = false },
+            onDismissed = { confirmationDialogShown = false }
+        )
     }
 
     Surface(
@@ -217,7 +218,7 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
                         end.linkTo(parent.end)
-                    }, onClick = { onDeleteClicked() }) {
+                    }, onClick = { confirmationDialogShown = true }) {
                 Icon(
                     imageVector = Icons.Outlined.DeleteOutline,
                     tint = Color.White,
@@ -298,5 +299,45 @@ fun EmptyResult() {
         modifier = Modifier.fillMaxSize(),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.h5
+    )
+}
+
+@Composable
+fun ConfirmationDialog(onConfirmClicked: () -> Unit, onCancelClicked: () -> Unit, onDismissed: () -> Unit) {
+    AlertDialog(
+        modifier = Modifier.border(width = 2.dp, color = Background, shape = MaterialTheme.shapes.medium),
+        onDismissRequest = { onDismissed() },
+        buttons = {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(width = 1.dp, color = Background, shape = MaterialTheme.shapes.medium),
+                    shape = Shapes.small,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
+                    onClick = { onConfirmClicked() }
+                ) {
+                    Text(text = "Confirm", color = Color.White, fontFamily = FontFamily.Monospace)
+                }
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(width = 1.dp, color = Background, shape = MaterialTheme.shapes.medium),
+                    shape = Shapes.small,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Black),
+                    onClick = { onCancelClicked() }
+                ) {
+                    Text(text = "Cancel", color = Color.White, fontFamily = FontFamily.Monospace)
+                }
+            }
+        },
+        backgroundColor = Color.Black,
+        title = {
+            Text(text = "Do you want to delete?", fontFamily = FontFamily.Monospace)
+        },
+        text = {
+            Text(text = "This will permanently remove the note from the database.", fontFamily = FontFamily.Monospace)
+        },
+        contentColor = Color.White
     )
 }
