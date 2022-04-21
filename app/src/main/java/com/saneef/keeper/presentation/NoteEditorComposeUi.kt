@@ -181,7 +181,6 @@ fun NotesBuilderContent(
                         modifier = Modifier
                             .padding(top = 8.dp)
                             .fillMaxWidth()
-                            .background(Color.Black)
                             .wrapContentSize()
                             .align(Alignment.Center)
                             .heightIn(min = 0.dp, max = 240.dp),
