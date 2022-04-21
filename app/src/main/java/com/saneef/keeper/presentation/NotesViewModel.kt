@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.saneef.keeper.di.DefaultDispatcher
 import com.saneef.keeper.domain.NotesUseCase
 import com.saneef.keeper.model.NoteUiModel
+import com.saneef.keeper.model.TodoItemUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.channels.BufferOverflow
@@ -63,7 +64,7 @@ class NotesViewModel @Inject constructor(
         }
     }
 
-    fun addNote(title: String, description: String) {
+    fun addNote(title: String, description: String, todoList: List<TodoItemUiModel>) {
         if (title.isEmpty() || description.isEmpty()) return
 
         viewModelScope.launch {
@@ -73,14 +74,16 @@ class NotesViewModel @Inject constructor(
                         NoteUiModel(
                             id = noteId,
                             title = title,
-                            description = description
+                            description = description,
+                            todoList = todoList,
                         )
                     )
                 } else {
                     notesUseCase.insertNote(
                         NoteUiModel(
                             title = title,
-                            description = description
+                            description = description,
+                            todoList = todoList,
                         )
                     )
                 }

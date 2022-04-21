@@ -8,4 +8,5 @@ data class NoteUiModel(
     val id: Long = 0L,
     val title: String,
     val description: String,
+    var todoList: List<TodoItemUiModel> = emptyList(),
 ): Parcelable

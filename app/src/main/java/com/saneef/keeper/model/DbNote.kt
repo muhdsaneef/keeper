@@ -10,4 +10,5 @@ data class DbNote(
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "timestamp") var timestamp: Long,
     @ColumnInfo(name = "description") var description: String,
+    @ColumnInfo(name = "todo_list") var todoList: String?,
 )

@@ -6,8 +6,11 @@ import com.saneef.keeper.dao.NotesDao
 import com.saneef.keeper.domain.NotesDbMapper
 import com.saneef.keeper.model.DbNote
 import com.saneef.keeper.model.NoteUiModel
+import com.saneef.keeper.model.TodoItemUiModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class NotesRepository @Inject constructor(
@@ -17,7 +20,20 @@ class NotesRepository @Inject constructor(
     ) {
     val notesFlow: Flow<List<NoteUiModel>>
         get() = notesDao.getAllNotes()
-            .map { it.map { note -> NoteUiModel(id = note.id, title = note.title, description = note.description) } }
+            .map {
+                it.map { note ->
+                    NoteUiModel(
+                        id = note.id,
+                        title = note.title,
+                        description = note.description,
+                        todoList = note.todoList?.let { todoList ->
+                            Json.decodeFromString<List<TodoItemUiModel>>(
+                                todoList
+                            )
+                        }.orEmpty()
+                    )
+                }
+            }
 
     fun insert(note: NoteUiModel) {
         notesDao.insert(notesDbMapper.map(note))
@@ -25,7 +41,13 @@ class NotesRepository @Inject constructor(
 
     fun update(note: NoteUiModel) {
         val updatedNote = note.run {
-            DbNote(id, title, timestampHelper.currentTimestamp, description)
+            DbNote(
+                id = id,
+                title = title,
+                timestamp = timestampHelper.currentTimestamp,
+                description = description,
+                todoList = notesDbMapper.mapTodoList(todoList),
+            )
         }
         notesDao.update(updatedNote)
     }
