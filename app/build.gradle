@@ -16,7 +16,7 @@ android {
         applicationId "com.saneef.keeper"
         minSdk 23
         targetSdk 31
-        versionCode 1
+        versionCode 2
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -76,6 +76,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:29.3.0')
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-database-ktx'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2"
 
     implementation "com.google.dagger:hilt-android:2.38.1"

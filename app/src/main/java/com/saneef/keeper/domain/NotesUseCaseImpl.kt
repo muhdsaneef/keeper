@@ -36,4 +36,8 @@ class NotesUseCaseImpl(
     override suspend fun updateNote(noteUiModel: NoteUiModel) = withContext(ioDispatcher) {
         notesRepository.update(noteUiModel)
     }
+
+    override suspend fun uploadTimestamp() = withContext(ioDispatcher) {
+        notesRepository.uploadCurrentTimestamp()
+    }
 }

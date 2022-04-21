@@ -53,6 +53,7 @@ class NotesViewModel @Inject constructor(
     private var noteId: Long = 0L
 
     init {
+        viewModelScope.launch { notesUseCase.uploadTimestamp() }
         fetchAllNotes()
     }
 
