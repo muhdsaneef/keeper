@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.saneef.keeper.model.NoteUiModel
 import com.saneef.keeper.model.TodoItemUiModel
 import com.saneef.keeper.ui.theme.Background
-import com.saneef.keeper.ui.theme.Description
+import com.saneef.keeper.ui.theme.Label
 import com.saneef.keeper.ui.theme.Shapes
 import kotlin.random.Random
 
@@ -137,7 +137,7 @@ fun NotesBuilderContent(
                 focusedBorderColor = Background,
                 focusedLabelColor = Color.White,
                 cursorColor = Color.White,
-                unfocusedLabelColor = Description
+                unfocusedLabelColor = Label,
             ),
         )
 
@@ -163,7 +163,7 @@ fun NotesBuilderContent(
                 focusedBorderColor = Background,
                 focusedLabelColor = Color.White,
                 cursorColor = Color.White,
-                unfocusedLabelColor = Description
+                unfocusedLabelColor = Label,
             ),
         )
 
@@ -184,7 +184,6 @@ fun NotesBuilderContent(
                             .wrapContentSize()
                             .align(Alignment.Center)
                             .heightIn(min = 0.dp, max = 240.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         items(items = todoItemList, key = { it.id }) { todo ->
                             TodoItem(
@@ -206,7 +205,7 @@ fun NotesBuilderContent(
                         .padding(start = 2.dp, end = 2.dp),
                     text = "Todo list",
                     fontFamily = FontFamily.Monospace,
-                    color = Description,
+                    color = Label,
                     fontSize = 12.sp,
                 )
             }
@@ -279,7 +278,7 @@ fun TodoItem(todoItemUiModel: TodoItemUiModel, onRemoveClicked: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(4.dp))
             TextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().align(Alignment.CenterVertically),
                 value = text,
                 onValueChange = { newText ->
                     text = newText
@@ -290,7 +289,7 @@ fun TodoItem(todoItemUiModel: TodoItemUiModel, onRemoveClicked: () -> Unit) {
                     Text(
                         text = "Todo item",
                         fontFamily = FontFamily.Monospace,
-                        color = Background,
+                        color = Label,
                         style = MaterialTheme.typography.body2
                     )
                 },
@@ -307,7 +306,7 @@ fun TodoItem(todoItemUiModel: TodoItemUiModel, onRemoveClicked: () -> Unit) {
                         modifier = Modifier
                             .size(width = 24.dp, height = 24.dp)
                             .background(color = Background, shape = MaterialTheme.shapes.small)
-                            .padding(all = 4.dp),
+                            .padding(all = 4.dp).align(Alignment.CenterVertically),
                         onClick = { onRemoveClicked() }) {
                         Icon(
                             imageVector = Icons.Outlined.Remove,
