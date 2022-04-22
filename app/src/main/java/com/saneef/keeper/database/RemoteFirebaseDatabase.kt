@@ -5,10 +5,6 @@ import com.google.firebase.installations.FirebaseInstallations
 import com.saneef.keeper.TimestampHelper
 import com.saneef.keeper.di.DefaultDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
-<<<<<<< HEAD
-=======
-import kotlinx.coroutines.CoroutineScope
->>>>>>> Add firebase db handler
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.random.Random
