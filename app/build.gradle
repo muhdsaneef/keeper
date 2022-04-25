@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId "com.saneef.keeper"
-        minSdk 23
+        minSdk 22
         targetSdk 31
         versionCode 3
         versionName "1.0"
