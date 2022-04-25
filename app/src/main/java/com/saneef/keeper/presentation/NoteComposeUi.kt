@@ -90,7 +90,7 @@ fun Notes(viewModel: NotesViewModel) {
             items(items = notes, key = { it.id }) { note ->
                 Note(
                     title = note.title,
-                    description = if (notesVisibility) note.description else "Content hidden",
+                    description = if (notesVisibility) note.description else "*Content hidden*",
                     onClicked = { viewModel.onEditClicked(note) },
                     onDeleteClicked = { viewModel.deleteNote(note.id) }
                 )
