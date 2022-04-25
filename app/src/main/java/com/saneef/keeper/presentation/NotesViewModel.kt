@@ -9,8 +9,10 @@ import com.saneef.keeper.model.NoteUiModel
 import com.saneef.keeper.model.TodoItemUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,9 +50,10 @@ class NotesViewModel @Inject constructor(
         get() = notesVisibilityState.asStateFlow()
 
     private var isBiometricVerified: Boolean = false
-
+    private var isBiometricAvailable: Boolean = true
     private var isEditMode: Boolean = false
     private var noteId: Long = 0L
+    private var searchJob: Job? = null
 
     init {
         viewModelScope.launch { notesUseCase.uploadTimestamp() }
@@ -97,18 +100,24 @@ class NotesViewModel @Inject constructor(
     }
 
     fun searchNote(query: String) {
-        if (query.isEmpty()) {
-            searchResultsState.value = emptyList()
-        } else {
-            viewModelScope.launch {
-                withContext(defaultDispatcher) {
-                    notesState.value.let {
-                        val searchResults = it.filter { note ->
-                            note.title.contains(query, ignoreCase = true) ||
-                                note.description.contains(query, ignoreCase = true)
-                        }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            withContext(defaultDispatcher) {
+                delay(SEARCH_DELAY)
+                if (query.isEmpty()) {
+                    searchResultsState.value = emptyList()
+                } else {
+                    viewModelScope.launch {
+                        withContext(defaultDispatcher) {
+                            notesState.value.let {
+                                val searchResults = it.filter { note ->
+                                    note.title.contains(query, ignoreCase = true) ||
+                                        note.description.contains(query, ignoreCase = true)
+                                }
 
-                        searchResultsState.value = searchResults
+                                searchResultsState.value = searchResults
+                            }
+                        }
                     }
                 }
             }
@@ -129,7 +138,7 @@ class NotesViewModel @Inject constructor(
     }
 
     fun toggleNotesVisibility() {
-        if (isBiometricVerified.not()) {
+        if (isBiometricVerified.not() && isBiometricAvailable) {
             initiateBiometric()
         } else {
             notesVisibilityState.value = notesVisibilityState.value.not()
@@ -155,7 +164,7 @@ class NotesViewModel @Inject constructor(
 
     fun onEditClicked(noteUiModel: NoteUiModel) {
         viewModelScope.launch {
-            if (isBiometricVerified) {
+            if (isBiometricVerified || isBiometricAvailable.not()) {
                 noteEventsChannel.send(NoteEvents.EditRequired(noteUiModel))
             } else {
                 initiateBiometric()
@@ -168,6 +177,14 @@ class NotesViewModel @Inject constructor(
             isEditMode = true
             noteId = noteUiModel.id
         }
+    }
+
+    fun notifyBiometricAvailability(biometricUnavailable: Boolean) {
+        isBiometricAvailable = biometricUnavailable.not()
+    }
+
+    companion object {
+        private const val SEARCH_DELAY = 500L
     }
 }
 

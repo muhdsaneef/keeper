@@ -2,7 +2,6 @@ package com.saneef.keeper.presentation
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,17 +25,14 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
@@ -49,16 +45,6 @@ import com.saneef.keeper.ui.theme.Background
 import com.saneef.keeper.ui.theme.Description
 import com.saneef.keeper.ui.theme.Shapes
 import com.saneef.keeper.ui.theme.Title
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.random.Random
-
-private const val SCRAMBLED_TEXT_SEED = "Private content"
-private const val SCRAMBLE_DELAY = 300L
-private const val SCRAMBLER_COUNT = 2
-private const val SWIPE_THRESHOLD = 20
 
 @Composable
 fun NotesHome(viewModel: NotesViewModel) {
@@ -104,7 +90,7 @@ fun Notes(viewModel: NotesViewModel) {
             items(items = notes, key = { it.id }) { note ->
                 Note(
                     title = note.title,
-                    description = if (notesVisibility) note.description else SCRAMBLED_TEXT_SEED,
+                    description = if (notesVisibility) note.description else "Content hidden",
                     onClicked = { viewModel.onEditClicked(note) },
                     onDeleteClicked = { viewModel.deleteNote(note.id) }
                 )
@@ -115,31 +101,7 @@ fun Notes(viewModel: NotesViewModel) {
 
 @Composable
 fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClicked: () -> Unit) {
-
-    val coroutineScope = rememberCoroutineScope()
-    var disableScramble by remember { mutableStateOf(false) }
-    var scrambleText by remember { mutableStateOf(SCRAMBLED_TEXT_SEED) }
     var confirmationDialogShown by remember { mutableStateOf(false) }
-
-    LaunchedEffect(key1 = Unit) {
-        repeat(SCRAMBLER_COUNT) {
-            coroutineScope.launch {
-                withContext(Dispatchers.Default) {
-                    while (true) {
-                        delay(SCRAMBLE_DELAY)
-                        val indexToChange = Random.nextInt(0, scrambleText.length)
-                        val oldChar = scrambleText[indexToChange]
-                        val offset = Random.nextInt(-100, 100)
-                        val newChar = oldChar + offset
-                        if (newChar.isLetterOrDigit()) {
-                            val newString = scrambleText.replaceFirst(oldChar, oldChar + offset, ignoreCase = true)
-                            scrambleText = newString
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     if (confirmationDialogShown) {
         ConfirmationDialog(
@@ -168,19 +130,6 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
                         width = Dimension.fillToConstraints
                     }
                     .clickable { onClicked() }
-                    .pointerInput(Unit) {
-                        detectHorizontalDragGestures { _, dragAmount ->
-
-                            if (dragAmount > SWIPE_THRESHOLD) {
-                                disableScramble = true
-                            }
-
-                            if (dragAmount < -SWIPE_THRESHOLD) {
-                                disableScramble = false
-                            }
-                        }
-                    }
-
             ) {
                 Text(
                     text = title,
@@ -192,7 +141,7 @@ fun Note(title: String, description: String, onClicked: () -> Unit, onDeleteClic
                 )
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
-                    text = if (disableScramble) description else scrambleText,
+                    text = description,
                     color = Description,
                     style = MaterialTheme.typography.body1,
                     fontFamily = FontFamily.Monospace,
@@ -239,7 +188,10 @@ fun TopBar(viewModel: NotesViewModel) {
             TextField(
                 modifier = Modifier.padding(end = 32.dp),
                 value = query,
-                onValueChange = { query = it },
+                onValueChange = {
+                    query = it
+                    viewModel.searchNote(it)
+                },
                 singleLine = true,
                 leadingIcon = {
                     Icon(

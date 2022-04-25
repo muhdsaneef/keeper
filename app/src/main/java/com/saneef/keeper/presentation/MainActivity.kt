@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
@@ -26,11 +27,7 @@ class MainActivity : FragmentActivity() {
 
     private lateinit var executor: Executor
     private lateinit var biometricPrompt: BiometricPrompt
-    private val promptInfo: BiometricPrompt.PromptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("Biometric for notes reveal")
-        .setSubtitle("Please use your biometric to reveal the notes.")
-        .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-        .build()
+    private var promptInfo: BiometricPrompt.PromptInfo? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +43,18 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun initBiometricAuthenticator() {
+        val biometricAuthentication = BiometricManager.from(this).canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+        val isBiometricUnavailable = biometricAuthentication != BiometricManager.BIOMETRIC_SUCCESS
+        viewModel.notifyBiometricAvailability(isBiometricUnavailable)
+
+        if (isBiometricUnavailable) return
+
+        promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Biometric for notes reveal")
+            .setSubtitle("Please use your biometric to reveal the notes.")
+            .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+            .build()
+
         executor = ContextCompat.getMainExecutor(this)
         biometricPrompt = BiometricPrompt(this, executor,
             object : BiometricPrompt.AuthenticationCallback() {
@@ -98,7 +107,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun showBiometricDialog() {
-        biometricPrompt.authenticate(promptInfo)
+        promptInfo?.let { biometricPrompt.authenticate(it) }
     }
 
     private fun openNotesBuilder(noteUiModel: NoteUiModel? = null) {
